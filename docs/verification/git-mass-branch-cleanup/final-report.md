@@ -4,7 +4,7 @@
 - Primary path: `/Users/vadimirrosman/.Codex/codex-backups/worktrees/git-mass-branch-cleanup/home-.codex-worktrees-codeburn-codex-please-implement-this-plan-codeburn-1782224704`
 - Status: `BLOCKED / NEEDS_REVIEW`
 - Current branch: `integration/test`
-- HEAD: `a955227`
+- HEAD: `3e0e9e9`
 - Main touched: `no`
 - Test branch: `integration/test`
 - Force push used: `no`
