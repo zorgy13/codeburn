@@ -78,6 +78,10 @@ const fallbackCosts: Map<string, ModelCosts> = (() => {
   return map
 })()
 
+const directPriceOverrides = new Map<string, ModelCosts>([
+  ['MiniMax-M3', buildCosts(0.6e-6, 2.4e-6, null, null, null)],
+])
+
 let pricingCache: Map<string, ModelCosts> = loadSnapshot()
 let sortedPricingKeys: string[] | null = null
 let lowercasePricingIndex: Map<string, ModelCosts> | null = null
@@ -481,6 +485,10 @@ export function getModelCosts(model: string): ModelCosts | null {
     return pricingCache.get(canonical)!
   }
 
+  if (withPrefix === canonicalName && directPriceOverrides.has(canonicalName)) {
+    return directPriceOverrides.get(canonicalName)!
+  }
+
   if (pricingCache.has(withPrefix)) return pricingCache.get(withPrefix)!
 
   if (pricingCache.has(canonical)) return pricingCache.get(canonical)!
@@ -661,6 +669,7 @@ const SHORT_NAMES: Record<string, string> = {
   'deepseek-r1': 'DeepSeek R1',
   'o4-mini': 'o4-mini',
   'o3': 'o3',
+  'MiniMax-M3': 'MiniMax M3',
   'MiniMax-M2.7-highspeed': 'MiniMax M2.7 Highspeed',
   'MiniMax-M2.7': 'MiniMax M2.7',
   // Grok (xAI) and GLM ids that otherwise surface raw or as a pricing key in

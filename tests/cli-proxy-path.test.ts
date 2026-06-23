@@ -8,8 +8,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 // Each test spawns `tsx src/cli.ts` several times, which re-transpiles the CLI
 // on every spawn. Under full-suite parallel load those spawns contend for CPU
 // and can exceed the 5s default, so give this spawn-based file a timeout that
-// matches the per-spawn cap below. The slowest test runs ~1.7s in isolation.
-vi.setConfig({ testTimeout: 30_000 })
+// matches the per-spawn cap below. The proxy overview case performs two report
+// spawns and can exceed 30s under full-suite parallel load.
+vi.setConfig({ testTimeout: 60_000 })
 
 let homes: string[] = []
 
@@ -31,7 +32,7 @@ function runCli(args: string[], home: string) {
     cwd: process.cwd(),
     env: { ...process.env, HOME: home, CLAUDE_CONFIG_DIR: join(home, '.claude'), TZ: 'UTC' },
     encoding: 'utf-8',
-    timeout: 30_000,
+    timeout: 60_000,
   })
 }
 

@@ -11,7 +11,7 @@ import { toDateString } from './daily-cache.js'
 import { dateKey } from './day-aggregator.js'
 import { CATEGORY_LABELS, type DateRange, type ProjectSummary, type TaskCategory } from './types.js'
 import { aggregateModelEfficiency } from './model-efficiency.js'
-import { buildPeriodData, buildMenubarPayloadForRange } from './usage-aggregator.js'
+import { buildCodexChatsReport, buildPeriodData, buildMenubarPayloadForRange } from './usage-aggregator.js'
 import { renderDashboard } from './dashboard.js'
 import { renderOverview } from './overview.js'
 import { runWebDashboard } from './web-dashboard.js'
@@ -198,6 +198,7 @@ function buildJsonReport(projects: ProjectSummary[], period: string, periodKey: 
   const totalSessions = projects.reduce((s, p) => s + p.sessions.length, 0)
   const totalInput = sessions.reduce((s, sess) => s + sess.totalInputTokens, 0)
   const totalOutput = sessions.reduce((s, sess) => s + sess.totalOutputTokens, 0)
+  const totalReasoning = sessions.reduce((s, sess) => s + (sess.totalReasoningTokens ?? 0), 0)
   const totalCacheRead = sessions.reduce((s, sess) => s + sess.totalCacheReadTokens, 0)
   const totalCacheWrite = sessions.reduce((s, sess) => s + sess.totalCacheWriteTokens, 0)
   // Match src/menubar-json.ts:cacheHitPercent: reads over reads+fresh-input. cache_write
@@ -219,7 +220,9 @@ function buildJsonReport(projects: ProjectSummary[], period: string, periodKey: 
       // sessions where the JSONL begins mid-conversation). Previously these
       // turns dropped from daily but stayed in activities, breaking the
       // sum(daily[].editTurns) === sum(activities[].editTurns) invariant.
-      const ts = turn.timestamp || turn.assistantCalls[0]?.timestamp
+      const billableCalls = turn.assistantCalls.filter(call => !call.metadataOnly)
+      if (billableCalls.length === 0) continue
+      const ts = turn.timestamp || billableCalls[0]?.timestamp
       if (!ts) { continue }
       const day = dateKey(ts)
       if (!dailyMap[day]) { dailyMap[day] = { cost: 0, savings: 0, calls: 0, turns: 0, editTurns: 0, oneShotTurns: 0 } }
@@ -228,7 +231,7 @@ function buildJsonReport(projects: ProjectSummary[], period: string, periodKey: 
         dailyMap[day].editTurns += 1
         if (turn.retries === 0) dailyMap[day].oneShotTurns += 1
       }
-      for (const call of turn.assistantCalls) {
+      for (const call of billableCalls) {
         dailyMap[day].cost += call.costUSD
         dailyMap[day].savings += call.savingsUSD ?? 0
         dailyMap[day].calls += 1
@@ -263,16 +266,17 @@ function buildJsonReport(projects: ProjectSummary[], period: string, periodKey: 
     sessions: p.sessions.length,
   }))
 
-  const modelMap: Record<string, { calls: number; cost: number; savings: number; inputTokens: number; outputTokens: number; cacheReadTokens: number; cacheWriteTokens: number; baselineModel: string }> = {}
+  const modelMap: Record<string, { calls: number; cost: number; savings: number; inputTokens: number; outputTokens: number; reasoningTokens: number; cacheReadTokens: number; cacheWriteTokens: number; baselineModel: string }> = {}
   const modelEfficiency = aggregateModelEfficiency(projects)
   for (const sess of sessions) {
     for (const [model, d] of Object.entries(sess.modelBreakdown)) {
-      if (!modelMap[model]) { modelMap[model] = { calls: 0, cost: 0, savings: 0, inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, baselineModel: '' } }
+      if (!modelMap[model]) { modelMap[model] = { calls: 0, cost: 0, savings: 0, inputTokens: 0, outputTokens: 0, reasoningTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, baselineModel: '' } }
       modelMap[model].calls += d.calls
       modelMap[model].cost += d.costUSD
       modelMap[model].savings += d.savingsUSD
       modelMap[model].inputTokens += d.tokens.inputTokens
       modelMap[model].outputTokens += d.tokens.outputTokens
+      modelMap[model].reasoningTokens += d.tokens.reasoningTokens ?? 0
       modelMap[model].cacheReadTokens += d.tokens.cacheReadInputTokens
       modelMap[model].cacheWriteTokens += d.tokens.cacheCreationInputTokens
     }
@@ -383,17 +387,30 @@ function buildJsonReport(projects: ProjectSummary[], period: string, periodKey: 
   const sortedMap = (m: Record<string, number>) =>
     Object.entries(m).sort(([, a], [, b]) => b - a).map(([name, calls]) => ({ name, calls }))
 
-  const topSessions = projects
+  const sessionList = projects
     .flatMap(p => p.sessions.map(s => ({
       project: p.project,
+      projectPath: s.sourceProjectPath ?? p.projectPath,
+      groupProjectPath: p.projectPath,
       sessionId: s.sessionId,
-      date: s.firstTimestamp ? dateKey(s.firstTimestamp) : null,
+      chatTitle: s.chatTitle ?? "",
+      startedAt: s.firstTimestamp ?? null,
+      lastSeenAt: s.lastTimestamp ?? null,
       cost: convertCost(s.totalCostUSD),
       savings: convertCost(s.totalSavingsUSD),
       calls: s.apiCalls,
+      inputTokens: s.totalInputTokens,
+      outputTokens: s.totalOutputTokens,
+      reasoningTokens: s.totalReasoningTokens ?? 0,
+      cacheReadTokens: s.totalCacheReadTokens,
+      cacheWriteTokens: s.totalCacheWriteTokens,
+      totalTokens: s.totalInputTokens + s.totalOutputTokens + (s.totalReasoningTokens ?? 0) + s.totalCacheReadTokens + s.totalCacheWriteTokens,
     })))
+    .sort((a, b) => (b.lastSeenAt ?? "").localeCompare(a.lastSeenAt ?? ""))
+
+  const topSessions = [...sessionList]
     .sort((a, b) => (b.cost + b.savings) - (a.cost + a.savings))
-    .slice(0, 5)
+    .slice(0, 5000)
 
   return {
     generated: new Date().toISOString(),
@@ -415,6 +432,7 @@ function buildJsonReport(projects: ProjectSummary[], period: string, periodKey: 
       tokens: {
         input: totalInput,
         output: totalOutput,
+        reasoning: totalReasoning,
         cacheRead: totalCacheRead,
         cacheWrite: totalCacheWrite,
       },
@@ -429,6 +447,7 @@ function buildJsonReport(projects: ProjectSummary[], period: string, periodKey: 
     skills: Object.entries(skillMap).sort(([, a], [, b]) => (b.cost + b.savings) - (a.cost + a.savings)).map(([name, d]) => ({ name, turns: d.turns, cost: convertCost(d.cost), savings: convertCost(d.savings) })),
     subagents: Object.entries(subagentMap).sort(([, a], [, b]) => (b.cost + b.savings) - (a.cost + a.savings)).map(([name, d]) => ({ name, calls: d.calls, cost: convertCost(d.cost), savings: convertCost(d.savings) })),
     claudeAgentTypes: Object.entries(agentTypeMap).sort(([, a], [, b]) => (b.cost + b.savings) - (a.cost + a.savings)).map(([name, d]) => ({ name, calls: d.calls, cost: convertCost(d.cost), savings: convertCost(d.savings) })),
+    sessions: sessionList,
     topSessions,
   }
 }
@@ -613,6 +632,7 @@ program
   .option('--from <date>', 'Start date (YYYY-MM-DD) for custom range')
   .option('--to <date>', 'End date (YYYY-MM-DD) for custom range')
   .option('--days <dates>', 'Comma-separated dates (YYYY-MM-DD) for multi-day selection')
+  .option('--chat-hours <hours>', 'Lookback window for Codex chats in menubar-json', parseInteger, 48)
   .option('--no-optimize', 'Skip optimize findings (menubar-json only, faster)')
   .action(async (opts) => {
     assertFormat(opts.format, ['terminal', 'menubar-json', 'json'], 'status')
@@ -643,6 +663,7 @@ program
         exclude: opts.exclude,
         daysSelection,
         optimize: opts.optimize !== false,
+        chatHours: opts.chatHours,
       })
       console.log(JSON.stringify(payload))
       return
@@ -685,6 +706,33 @@ program
     const monthProjects2 = fp(await parseAllSessions(getDateRange('month').range, pf))
     clearSessionCache()
     console.log(renderStatusBar(monthProjects2))
+  })
+
+program
+  .command('chats')
+  .description('Codex chat token usage for the last 48 hours')
+  .option('--hours <hours>', 'Lookback window in hours', parseInteger, 48)
+  .option('--limit <count>', 'Maximum chats to show', parseInteger, 5000)
+  .option('--format <format>', 'Output format: terminal, json', 'terminal')
+  .action(async (opts) => {
+    assertFormat(opts.format, ['terminal', 'json'], 'chats')
+    await loadPricing()
+    const hours = Math.max(1, Math.floor(opts.hours ?? 48))
+    const limit = Math.max(1, Math.floor(opts.limit ?? 5000))
+    const now = new Date()
+    const projects = await parseAllSessions(undefined, 'codex')
+    const report = buildCodexChatsReport(projects, hours, limit, now)
+    if (opts.format === 'json') {
+      console.log(JSON.stringify(report, null, 2))
+      return
+    }
+    console.log(`\n  ${report.label}: ${report.totalChats} chats, ${report.totals.totalTokens.toLocaleString()} tokens, $${report.totals.cost.toFixed(2)}\n`)
+    for (const chat of report.chats) {
+      const title = chat.chatTitle || 'Untitled chat'
+      console.log(`  ${chat.projectDisplayName}  ${title}`)
+      console.log(`    ${chat.totalTokens.toLocaleString()} tokens, ${chat.calls} calls, $${chat.cost.toFixed(2)}, ${chat.lastSeenAt}`)
+    }
+    console.log('')
   })
 
 program

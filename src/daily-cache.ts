@@ -5,18 +5,15 @@ import { homedir } from 'os'
 import { join } from 'path'
 import type { DateRange, ProjectSummary } from './types.js'
 
-// Bumped to 9: providers added since the v8 rollup (Grok, Hermes, ZCode) parse
-// usage that older binaries skipped, so days cached at v8 omit them and report
-// $0 for those providers across history. Raising MIN_SUPPORTED_VERSION to 9 too
-// forces a one-time full re-hydration so newly supported providers backfill
-// without a manual cache clear.
-//
-// v8 added local-model savings to the daily rollup (savingsUSD per day / model /
-// category / provider). The `savingsConfigHash` field is invalidated separately
-// when the user changes their `localModelSavings` mapping so historical "saved"
-// totals stay in sync with the active baseline.
-export const DAILY_CACHE_VERSION = 9
-const MIN_SUPPORTED_VERSION = 9
+// Bumped to 10: keeps the v9 provider backfill re-hydration (Grok, Hermes,
+// ZCode) and adds the Codex transcript-estimate fallback for sessions that
+// contain no token_count events. Stale entries computed by older binaries may
+// contain zero provider/Codex totals, so MIN_SUPPORTED_VERSION is also raised to
+// 10 to force a full re-hydration. The `savingsConfigHash` field is invalidated
+// separately when the user changes their `localModelSavings` mapping so
+// historical "saved" totals stay in sync with the active baseline.
+export const DAILY_CACHE_VERSION = 10
+const MIN_SUPPORTED_VERSION = 10
 const DAILY_CACHE_FILENAME = 'daily-cache.json'
 
 export type DailyEntry = {

@@ -33,7 +33,10 @@ export type CachedCall = {
   deduplicationKey: string
   project?: string
   projectPath?: string
+  chatTitle?: string
+  projectTitle?: string
   toolSequence?: ToolCall[][]
+  metadataOnly?: boolean
 }
 
 export type CachedTurn = {
@@ -111,7 +114,8 @@ const PROVIDER_PARSE_VERSIONS: Record<string, string> = {
   claude: 'cowork-space-grouping-v1',
   cline: 'worktree-project-grouping-v1',
   'cursor-agent': 'workspaceless-transcript-v1',
-  copilot: 'otel-durable-v1',
+  codex: 'transcript-estimate-v1',
+  copilot: 'otel-durable-mcp-tool-normalization-v1',
   hermes: 'reasoning-output-accounting-v1',
   'ibm-bob': 'worktree-project-grouping-v1',
   'kilo-code': 'worktree-project-grouping-v1',
@@ -199,6 +203,8 @@ function validateCall(c: unknown): c is CachedCall {
     && (o['speed'] === 'standard' || o['speed'] === 'fast')
     && isOptionalNum(o['costUSD'])
     && isStringArray(o['tools'])
+    && isOptionalString(o['chatTitle'])
+    && isOptionalString(o['projectTitle'])
     && isStringArray(o['bashCommands'])
     && isStringArray(o['skills'])
     && (o['subagentTypes'] === undefined || isStringArray(o['subagentTypes']))
