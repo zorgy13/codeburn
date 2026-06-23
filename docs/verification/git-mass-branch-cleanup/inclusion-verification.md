@@ -1,7 +1,7 @@
 # Inclusion Verification
 
-- Recomputed at: `2026-06-23T18:44:34Z`
-- HEAD: `3461c06`
+- Recomputed at: `2026-06-23T19:00:42Z`
+- HEAD: `63472c3`
 
 | Branch | SHA | Included In integration/test | Action |
 |---|---|---|---|
@@ -10,7 +10,7 @@
 | `codex/please-implement-this-plan-codeburn-rebased` | `d0b925bcf3809719e33ab41fb2cf37884a18f507` | no | `NOT_INCLUDED_NEEDS_REVIEW` |
 | `codex/restore-codeburn-today-tokens` | `8e460096e3d55c2c6c1dfab6f12d3440ddc6c7a0` | yes | `delete_if_safe_after_push_checks` |
 | `codex/sodeburn-snova-ne-rabotaet-nuzhno-ra` | `8094aaa3403059b98fcd0fdbfeed3be93937506b` | yes | `delete_if_safe_after_push_checks` |
-| `integration/test` | `3461c0605986c0ebd8d307a626288a5f694dd16b` | keep | `keep` |
+| `integration/test` | `63472c3d138e0066ce6abf6a9c24dfa6384978f1` | keep | `keep` |
 | `main` | `06460c88daca8ddab25ebb3e399044637b75767d` | keep | `keep` |
 | `origin` | `dcdfbc1b10641b61cf5e2064e7aea261bbf823ef` | yes | `delete_if_safe_after_push_checks` |
 | `origin/add-zerostack-logo` | `2b6cd9f331342dc79ef9cb0723c4a01598faa0f2` | no | `NOT_INCLUDED_NEEDS_REVIEW` |
