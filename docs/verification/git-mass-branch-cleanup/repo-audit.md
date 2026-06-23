@@ -52,7 +52,7 @@ codex/please-implement-this-plan-codeburn-rebased
 $ git log --oneline --decorate -30
 exit=0
 d0b925b (HEAD -> codex/please-implement-this-plan-codeburn-rebased, zorgy13/codex/please-implement-this-plan-codeburn-rebased) fix(codeburn): restore menubar project token reporting
-dcdfbc1 (origin/main, origin/HEAD, integration/test) docs(changelog): credit @vaibhavarora14 for #486 (#552)
+dcdfbc1 (origin/main, origin/HEAD) docs(changelog): credit @vaibhavarora14 for #486 (#552)
 69eee2c (tag: v0.9.14, tag: mac-v0.9.14) chore(release): 0.9.14 (#551)
 71b1a9e fix: clean model names in reports and re-hydrate daily cache for new providers (#550)
 f26f4ad fix(menubar): show every active agent as a tab, ordered by usage for the selected range (#549)
@@ -104,7 +104,7 @@ exit=0
 * codex/please-implement-this-plan-codeburn-rebased d0b925b [zorgy13/codex/please-implement-this-plan-codeburn-rebased] fix(codeburn): restore menubar project token reporting
   codex/restore-codeburn-today-tokens               8e46009 fix(codex): content-address fork dedupe key to stop undercounting divergent events (#458)
   codex/sodeburn-snova-ne-rabotaet-nuzhno-ra        8094aaa fix(codeburn): restore Codex daily token reporting
-+ integration/test                                  dcdfbc1 (/Users/vadimirrosman/.Codex/codex-backups/worktrees/git-mass-branch-cleanup/home-.codex-worktrees-codeburn-codex-please-implement-this-plan-codeburn-1782224089) [origin/main] docs(changelog): credit @vaibhavarora14 for #486 (#552)
++ integration/test                                  a4842fb (/Users/vadimirrosman/.Codex/codex-backups/worktrees/git-mass-branch-cleanup/home-.codex-worktrees-codeburn-codex-please-implement-this-plan-codeburn-1782224704) [origin/main: ahead 1] chore: record git mass branch cleanup audit
   main                                              06460c8 [origin/main: ahead 2, behind 70] Merge branch 'codex/sodeburn-snova-ne-rabotaet-nuzhno-ra'
 ```
 
@@ -226,7 +226,7 @@ exit=0
 $ git worktree list
 exit=0
 /Users/vadimirrosman/Documents/Codex Project/Life/vendor/codeburn                                                                                                06460c8 [codex/codeburn-five-minute-token-refresh]
-/Users/vadimirrosman/.Codex/codex-backups/worktrees/git-mass-branch-cleanup/home-.codex-worktrees-codeburn-codex-please-implement-this-plan-codeburn-1782224089  dcdfbc1 [integration/test]
+/Users/vadimirrosman/.Codex/codex-backups/worktrees/git-mass-branch-cleanup/home-.codex-worktrees-codeburn-codex-please-implement-this-plan-codeburn-1782224704  a4842fb [integration/test]
 /Users/vadimirrosman/.codex/worktrees/codeburn/codex-please-implement-this-plan-codeburn                                                                         d0b925b [codex/please-implement-this-plan-codeburn-rebased]
 ```
 

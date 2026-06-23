@@ -7,6 +7,7 @@
 | `codex/please-implement-this-plan-codeburn-rebased` | local | `d0b925bcf380` | `zorgy13/codex/please-implement-this-plan-codeburn-rebased` | 2026-06-23T14:35:45+02:00 | 1 | 0 | `/Users/vadimirrosman/.codex/worktrees/codeburn/codex-please-implement-this-plan-codeburn` | no | `MERGE_TO_TEST` | `merge_then_delete_if_safe` |
 | `codex/restore-codeburn-today-tokens` | local | `8e460096e3d5` | `` | 2026-06-07T07:29:42+02:00 | 0 | 86 | `` | no | `MERGE_TO_TEST` | `merge_then_delete_if_safe` |
 | `codex/sodeburn-snova-ne-rabotaet-nuzhno-ra` | local | `8094aaa34030` | `` | 2026-06-10T13:47:05+02:00 | 1 | 86 | `` | no | `MERGE_TO_TEST` | `merge_then_delete_if_safe` |
+| `integration/test` | local | `a4842fb5c141` | `origin/main` | 2026-06-23T16:14:53+02:00 | 1 | 0 | `` | no | `INTEGRATION_TEST` | `keep` |
 | `main` | local | `06460c88daca` | `origin/main` | 2026-06-10T13:52:33+02:00 | 2 | 70 | `` | no | `PROTECTED_MAIN` | `keep` |
 | `origin` | remote | `dcdfbc1b1064` | `` | 2026-06-22T03:57:50+02:00 | 0 | 0 | `` | no | `REMOTE_MERGE_THEN_DELETE` | `merge_then_delete_if_safe` |
 | `origin/add-zerostack-logo` | remote | `2b6cd9f33134` | `` | 2026-06-19T14:51:26+02:00 | 1 | 34 | `` | no | `REMOTE_MERGE_THEN_DELETE` | `merge_then_delete_if_safe` |
