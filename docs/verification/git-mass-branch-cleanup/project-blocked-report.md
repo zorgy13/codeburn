@@ -2,8 +2,8 @@
 
 - Project: `CodeBurn`
 - Status: `BLOCKED / NEEDS_REVIEW`
-- Recomputed at: `2026-06-23T18:29:17Z`
-- HEAD: `dfce943`
+- Recomputed at: `2026-06-23T18:38:06Z`
+- HEAD: `de11720`
 - Push: `not_run`
 - Branch/worktree deletion: `not_run`
 - Main touched: `no`
