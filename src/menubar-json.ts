@@ -22,7 +22,7 @@ export type PeriodData = {
   codexCredits?: number
   categories: Array<{ name: string; cost: number; savingsUSD: number; turns: number; editTurns: number; oneShotTurns: number }>
   models: Array<{ name: string; cost: number; savingsUSD: number; calls: number }>
-  projects?: Array<{ name: string; cost: number; savingsUSD: number; sessions: number; inputTokens: number; outputTokens: number; reasoningTokens?: number; cacheReadTokens: number; cacheWriteTokens: number; sessionDetails?: Array<{ cost: number; savingsUSD: number; calls: number; inputTokens: number; outputTokens: number; reasoningTokens?: number; date: string; models: Array<{ name: string; cost: number; savingsUSD: number }> }> }>
+  projects?: Array<{ name: string; cost: number; savingsUSD: number; sessions: number; inputTokens?: number; outputTokens?: number; reasoningTokens?: number; cacheReadTokens?: number; cacheWriteTokens?: number; sessionDetails?: Array<{ cost: number; savingsUSD: number; calls: number; inputTokens: number; outputTokens: number; reasoningTokens?: number; date: string; models: Array<{ name: string; cost: number; savingsUSD: number }> }> }>
   modelEfficiency?: Array<{ name: string; costPerEdit: number | null; oneShotRate: number | null }>
   topSessions?: Array<{ project: string; cost: number; savingsUSD: number; calls: number; date: string }>
 }
@@ -200,7 +200,7 @@ export type MenubarPayload = {
         calls: number
         inputTokens: number
         outputTokens: number
-        reasoningTokens?: number
+        reasoningTokens: number
         date: string
         models: Array<{ name: string; cost: number; savingsUSD: number }>
       }>
@@ -346,11 +346,11 @@ function buildTopProjects(projects: PeriodData['projects']): MenubarPayload['cur
       existing.cost += project.cost
       existing.savingsUSD += project.savingsUSD
       existing.sessions += project.sessions
-      existing.inputTokens += project.inputTokens
-      existing.outputTokens += project.outputTokens
+      existing.inputTokens = (existing.inputTokens ?? 0) + (project.inputTokens ?? 0)
+      existing.outputTokens = (existing.outputTokens ?? 0) + (project.outputTokens ?? 0)
       existing.reasoningTokens = (existing.reasoningTokens ?? 0) + (project.reasoningTokens ?? 0)
-      existing.cacheReadTokens += project.cacheReadTokens
-      existing.cacheWriteTokens += project.cacheWriteTokens
+      existing.cacheReadTokens = (existing.cacheReadTokens ?? 0) + (project.cacheReadTokens ?? 0)
+      existing.cacheWriteTokens = (existing.cacheWriteTokens ?? 0) + (project.cacheWriteTokens ?? 0)
       existing.sessionDetails = [
         ...(existing.sessionDetails ?? []),
         ...(project.sessionDetails ?? []),
@@ -363,6 +363,15 @@ function buildTopProjects(projects: PeriodData['projects']): MenubarPayload['cur
     }
   }
   return [...grouped.values()]
+    .filter(p =>
+      p.cost > 0 ||
+      p.savingsUSD > 0 ||
+      (p.inputTokens ?? 0) > 0 ||
+      (p.outputTokens ?? 0) > 0 ||
+      (p.reasoningTokens ?? 0) > 0 ||
+      (p.cacheReadTokens ?? 0) > 0 ||
+      (p.cacheWriteTokens ?? 0) > 0
+    )
     .sort((a, b) => (b.cost + b.savingsUSD) - (a.cost + a.savingsUSD))
     .slice(0, TOP_PROJECTS_LIMIT)
     .map(p => ({
@@ -370,23 +379,25 @@ function buildTopProjects(projects: PeriodData['projects']): MenubarPayload['cur
       cost: p.cost,
       savingsUSD: p.savingsUSD,
       sessions: p.sessions,
-      inputTokens: p.inputTokens,
-      outputTokens: p.outputTokens,
+      inputTokens: p.inputTokens ?? 0,
+      outputTokens: p.outputTokens ?? 0,
       reasoningTokens: p.reasoningTokens ?? 0,
-      cacheReadTokens: p.cacheReadTokens,
-      cacheWriteTokens: p.cacheWriteTokens,
-      totalTokens: p.inputTokens + p.outputTokens + (p.reasoningTokens ?? 0) + p.cacheReadTokens + p.cacheWriteTokens,
+      cacheReadTokens: p.cacheReadTokens ?? 0,
+      cacheWriteTokens: p.cacheWriteTokens ?? 0,
+      totalTokens: (p.inputTokens ?? 0) + (p.outputTokens ?? 0) + (p.reasoningTokens ?? 0) + (p.cacheReadTokens ?? 0) + (p.cacheWriteTokens ?? 0),
       avgCostPerSession: p.sessions > 0 ? p.cost / p.sessions : 0,
-      sessionDetails: (p.sessionDetails ?? []).map(s => ({
-        cost: s.cost,
-        savingsUSD: s.savingsUSD,
-        calls: s.calls,
-        inputTokens: s.inputTokens,
-        outputTokens: s.outputTokens,
-        reasoningTokens: s.reasoningTokens ?? 0,
-        date: s.date,
-        models: s.models,
-      })),
+      sessionDetails: (p.sessionDetails ?? [])
+        .sort((a, b) => (b.cost + b.savingsUSD) - (a.cost + a.savingsUSD))
+        .map(s => ({
+          cost: s.cost,
+          savingsUSD: s.savingsUSD,
+          calls: s.calls,
+          inputTokens: s.inputTokens,
+          outputTokens: s.outputTokens,
+          reasoningTokens: s.reasoningTokens ?? 0,
+          date: s.date,
+          models: s.models,
+        })),
     }))
 }
 

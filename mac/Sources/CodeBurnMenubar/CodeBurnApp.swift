@@ -167,6 +167,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             window.collectionBehavior.insert(.canJoinAllSpaces)
             window.makeKeyAndOrderFront(nil)
         }
+        popover.contentViewController?.view.displayIfNeeded()
     }
 
     private func writeMenubarSmokeFailure(to outputDir: URL, error: Error) {
@@ -181,6 +182,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         let today = payload.history.daily.first { $0.date == todayDate }
         let chatProjects = groupCodexChatProjects(payload.current.codexChats48h.chats)
         let duplicateProjectNames = Dictionary(grouping: chatProjects, by: { $0.name })
+            .filter { $0.value.count > 1 }
+            .map { $0.key }
+            .sorted()
+        let topProjectDuplicateNames = Dictionary(grouping: payload.current.topProjects, by: { $0.name })
             .filter { $0.value.count > 1 }
             .map { $0.key }
             .sorted()
@@ -199,9 +204,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             "selectedPeriod": store.selectedPeriod.rawValue,
             "selectedInsight": store.selectedInsight.rawValue,
             "currentLabel": payload.current.label,
+            "currentCost": payload.current.cost,
             "currentInputTokens": payload.current.inputTokens,
             "currentOutputTokens": payload.current.outputTokens,
             "currentCalls": payload.current.calls,
+            "currentSessions": payload.current.sessions,
+            "currentCodexCredits": payload.current.codexCredits ?? 0,
+            "topProjectCount": payload.current.topProjects.count,
+            "topProjectDuplicateNames": topProjectDuplicateNames,
             "chatHours": payload.current.codexChats48h.hours,
             "chatReturned": payload.current.codexChats48h.returnedChats,
             "chatTotalChats": payload.current.codexChats48h.totalChats,

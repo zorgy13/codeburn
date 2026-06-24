@@ -6,6 +6,11 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 OUT_DIR="${1:-/tmp/codeburn-menubar-smoke-$(date +%Y%m%d-%H%M%S)}"
 TMP_CLI_DIR="$(mktemp -d /tmp/codeburn-cli.XXXXXX)"
 
+cleanup() {
+  rm -rf "$TMP_CLI_DIR"
+}
+trap cleanup EXIT
+
 mkdir -p "$OUT_DIR"
 
 if [[ ! -x "$ROOT_DIR/dist/cli.js" ]]; then
